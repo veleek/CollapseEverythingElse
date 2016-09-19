@@ -1,9 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="CollapseEverythingElse.Benjamin Randall.cc516ce2-0789-4780-a252-77c15ee3667a" Version="1.0" Language="en-US" Publisher="Benjamin Randall" />
-    <DisplayName>CollapseEverythingElse</DisplayName>
-    <Description>Empty VSIX Project.</Description>
+    <Identity Id="CollapseEverythingElse.BenCorp.cc516ce2-0789-4780-a252-77c15ee3667a" Version="1.0" Language="en-US" Publisher="Ben Randall" />
+    <DisplayName>Collapse Everything Else</DisplayName>
+    <Description xml:space="preserve">A Visual Studio Extension that allows you to collapse all outlining sections in a document except for the one that's currently focused.</Description>
+    <MoreInfo>https://github.com/veleek/CollapseEverythingElse</MoreInfo>
+    <License>License.txt</License>
+    <GettingStartedGuide>https://github.com/veleek/CollapseEverythingElse</GettingStartedGuide>
+    <Icon>Resources\CollapseEverythingElsePackage.ico</Icon>
+    <Tags>Outlining Collapse</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0]" />

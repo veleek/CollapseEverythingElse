@@ -1,21 +1,18 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="CollapseEverythingElse.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
+// <copyright file="CollapseEverythingElse.cs" company="Ben Corp.">
+//     Copyright (c) Ben Corp.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace CollapseEverythingElse
+namespace Ben.VisualStudio
 {
     /// <summary>
     /// Command handler
@@ -54,9 +51,9 @@ namespace CollapseEverythingElse
             OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
             {
-                var menuCommandID = new CommandID(CommandSet, CommandId);
-                var menuItem = new MenuCommand(this.MenuItemCallback, menuCommandID);
-                commandService.AddCommand(menuItem);
+                var collapseEverythingElseCommandID = new CommandID(CommandSet, CommandId);
+                var collapseEverythingElseMenuItem = new MenuCommand(this.CollapseEverythingElseCallback, collapseEverythingElseCommandID);
+                commandService.AddCommand(collapseEverythingElseMenuItem);
             }
         }
 
@@ -96,176 +93,53 @@ namespace CollapseEverythingElse
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private void MenuItemCallback(object sender, EventArgs args)
+        private void CollapseEverythingElseCallback(object sender, EventArgs args)
+        {
+            CollapseEverythingElseInActiveWindow();
+        }
+
+        private void CollapseEverythingElseInActiveWindow()
+        {
+            IVsTextManager textManager = this.ServiceProvider.GetService<SVsTextManager, IVsTextManager>();
+            IVsTextView activeView;
+            textManager.GetActiveView(0, null, out activeView);
+
+            CollapseAllRegionsExceptCurrent(activeView);
+        }
+
+        private void CollapseEverythingElseInAllWindows()
         {
             IVsUIShell shell = this.ServiceProvider.GetService<SVsUIShell, IVsUIShell>();
-            foreach (var windowFrame in shell.GetDocumentWindows())
+            foreach (IVsWindowFrame windowFrame in shell.GetDocumentWindows())
             {
-                try
-                {
-                    object docView;
-                    windowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView);
-                    var codeWindow = docView as IVsCodeWindow;
+                var codeWindow = windowFrame.GetProperty<IVsCodeWindow>(__VSFPROPID.VSFPROPID_DocView);
 
-                    IVsTextView textView;
-                    codeWindow.GetLastActiveView(out textView);
+                IVsTextView textView;
+                codeWindow.GetLastActiveView(out textView);
 
-                    int line, column;
-                    textView.GetCaretPos(out line, out column);
-
-                    // See here for total bullshit: https://msdn.microsoft.com/en-us/library/cc826040.aspx
-                    // This contains 'info' about where to find these values, but doesn't actually tell you where to look for the constants.
-                    //object commandDispatcherObj = this.package.QueryService(VSConstants.SID_SUIHostCommandDispatcher);
-                    //IOleCommandTarget commandDispatcher = commandDispatcherObj as IOleCommandTarget;
-                    IOleCommandTarget commandDispatcher = this.ServiceProvider.GetService<SUIHostCommandDispatcher, IOleCommandTarget>();
-
-                    Guid commandSet = VSConstants.CMDSETID.StandardCommandSet2010_guid;
-                    uint commandId = (uint)VSConstants.VSStd2010CmdID.OUTLN_COLLAPSE_ALL;
-                    var result = commandDispatcher.Exec(commandSet, commandId, 0, IntPtr.Zero, IntPtr.Zero);
-
-                    textView.SetCaretPos(line, column);
-                }
-                catch (Exception e)
-                {
-                    // Show a message box to prove we were here
-                    VsShellUtilities.ShowMessageBox(
-                        this.ServiceProvider,
-                        e.ToString(),
-                        "Error",
-                        OLEMSGICON.OLEMSGICON_INFO,
-                        OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                        OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                }
-            }
-        }
-    }
-
-    public class WindowFrameEnumerable : IEnumerable<IVsWindowFrame>
-    {
-        private IEnumWindowFrames enumWindowFrames;
-
-        public WindowFrameEnumerable(IVsUIShell shell)
-        {
-            shell.GetDocumentWindowEnum(out this.enumWindowFrames);
-        }
-
-        public WindowFrameEnumerable(IEnumWindowFrames enumWindowFrames)
-        {
-            this.enumWindowFrames = enumWindowFrames;
-        }
-
-        public IEnumerator<IVsWindowFrame> GetEnumerator()
-        {
-            return new WindowFrameEnumerator(this.enumWindowFrames);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-    }
-
-    public class WindowFrameEnumerator : IEnumerator<IVsWindowFrame>
-    {
-        public const int BufferSize = 5;
-
-        private IEnumWindowFrames enumWindowFrames;
-        private IVsWindowFrame[] buffer;
-        private int windowCount = 0;
-        private int position = 0;
-
-        public WindowFrameEnumerator(IEnumWindowFrames enumWindowFrames)
-        {
-            this.enumWindowFrames = enumWindowFrames;
-            this.buffer = new IVsWindowFrame[BufferSize];
-        }
-
-        public IVsWindowFrame Current
-        {
-            get
-            {
-                return this.buffer[position];
+                CollapseAllRegionsExceptCurrent(textView);
             }
         }
 
-        object IEnumerator.Current
+        /// <summary>
+        /// Collapse all regions except for the current region (and any parents) in the given TextView.
+        /// </summary>
+        /// <param name="textView">The text view to collapse.</param>
+        private void CollapseAllRegionsExceptCurrent(IVsTextView textView)
         {
-            get
-            {
-                return this.Current;
-            }
-        }
+            int line, column;
+            textView.GetCaretPos(out line, out column);
 
-        public bool MoveNext()
-        {
-            position++;
-            if (position >= windowCount)
-            {
-                uint framesRetrieved;
-                this.enumWindowFrames.Next(BufferSize, this.buffer, out framesRetrieved);
-                this.windowCount = (int)framesRetrieved;
-                position = 0;
+            IOleCommandTarget commandDispatcher = this.ServiceProvider.GetService<SUIHostCommandDispatcher, IOleCommandTarget>();
 
-                if (this.windowCount == 0)
-                {
-                    return false;
-                }
-            }
+            // See the MSDN documentation here https://msdn.microsoft.com/en-us/library/cc826040.aspx
+            // for pointers about where command set and command IDs are defined.  Specifically, we're
+            // using Edit > Outlining > Collapse All.
+            Guid commandSet = VSConstants.CMDSETID.StandardCommandSet2010_guid;
+            uint commandId = (uint)VSConstants.VSStd2010CmdID.OUTLN_COLLAPSE_ALL;
+            var result = commandDispatcher.Exec(commandSet, commandId, 0, IntPtr.Zero, IntPtr.Zero);
 
-            return true;
-        }
-
-        public void Reset()
-        {
-            this.position = 0;
-            this.windowCount = 0;
-            this.enumWindowFrames.Reset();
-        }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
-    }
-
-    public static class EnumWindowFramesExtensions
-    {
-        public static WindowFrameEnumerator GetEnumerator(this IEnumWindowFrames self)
-        {
-            return new WindowFrameEnumerator(self);
-        }
-    }
-
-    public static class IVsUIShellExtensions
-    {
-        public static WindowFrameEnumerable GetDocumentWindows(this IVsUIShell shell)
-        {
-            return new WindowFrameEnumerable(shell);
-        }
-    }
-
-    public static class IServiceProviderExtensions
-    {
-        public static TIService GetService<TService, TIService>(this System.IServiceProvider serviceProvider)
-        {
-            return (TIService)serviceProvider.GetService(typeof(TService));
+            textView.SetCaretPos(line, column);
         }
     }
 }
