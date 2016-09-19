@@ -11,7 +11,7 @@ By default, the command is bound to the shortcut key `Ctrl+M,S` (e.g. Collapse '
 
 ## Installation
 
-Install this extension using the .vsix from [the latest release](releases/latest).
+Install this extension using the .vsix from [the latest release](../../releases/latest).
 
 ## Implementation
 
