@@ -1,4 +1,4 @@
-﻿# Collapse Everything Else Extensions
+# Collapse Everything Else Extension for Visual Studio
 
 A simple Visual Studio extension that allows you to collapse all outlining sections in the current document except for the currently highligted one.
 
