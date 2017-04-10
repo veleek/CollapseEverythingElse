@@ -140,6 +140,7 @@ namespace Ben.VisualStudio
             var result = commandDispatcher.Exec(commandSet, commandId, 0, IntPtr.Zero, IntPtr.Zero);
 
             textView.SetCaretPos(line, column);
+            textView.CenterLines(line, 10);
         }
     }
 }
