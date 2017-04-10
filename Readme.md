@@ -1,4 +1,4 @@
-﻿# Collapse Everything Else Extensions
+# Collapse Everything Else Extension for Visual Studio
 
 A simple Visual Studio extension that allows you to collapse all outlining sections in the current document except for the currently highligted one.
 
@@ -10,6 +10,8 @@ Adds a new menu item:
 By default, the command is bound to the shortcut key `Ctrl+M,S` (e.g. Collapse '**s**ome').
 
 ## Installation
+
+Install this extension using the .vsix from [the latest release](../../releases/latest).
 
 ## Implementation
 
