@@ -2,22 +2,21 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-  <Extern href="stdidcmd.h"/>
+  <Extern href="stdidcmd.h" />
 
   <!--This header contains the command ids for the menus provided by the shell. -->
-  <Extern href="vsshlids.h"/>
+  <Extern href="vsshlids.h" />
 
   <Commands package="guidCollapseEverythingElsePackage">
     <Buttons>
       <Button guid="guidCollapseEverythingElsePackageCmdSet" id="CollapseEverythingElseId" priority="0x0100" type="Button">
         <!-- We want to group this command with the other outlining commands. -->
-        <Parent guid="guidStdEditor" id="IDG_VS_EDITOR_OUTLINING_CMDS"/>
+        <Parent guid="guidStdEditor" id="IDG_VS_EDITOR_OUTLINING_CMDS" />
         <Strings>
           <ButtonText>Collapse Everything Else</ButtonText>
         </Strings>
       </Button>
     </Buttons>
-
   </Commands>
   
   <KeyBindings>
