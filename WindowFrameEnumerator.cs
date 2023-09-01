@@ -19,8 +19,8 @@ namespace Ben.VisualStudio
     {
         public const int BufferSize = 5;
 
-        private IEnumWindowFrames enumWindowFrames;
-        private IVsWindowFrame[] buffer;
+        private readonly IEnumWindowFrames enumWindowFrames;
+        private readonly IVsWindowFrame[] buffer;
         private int windowCount = 0;
         private int position = 0;
 
@@ -51,8 +51,7 @@ namespace Ben.VisualStudio
             position++;
             if (position >= windowCount)
             {
-                uint framesRetrieved;
-                this.enumWindowFrames.Next(BufferSize, this.buffer, out framesRetrieved);
+	            this.enumWindowFrames.Next(BufferSize, this.buffer, out uint framesRetrieved);
                 this.windowCount = (int)framesRetrieved;
                 position = 0;
 
